@@ -5,10 +5,10 @@
 [![Node.js](https://img.shields.io/badge/Node-20-green.svg)](https://nodejs.org)
 
 ## 🌐 Live Demo
-**Frontend:** Frontend: https://business-app-sf36.vercel.app ✅  
+**Frontend:** https://business-app-3r2g.vercel.app ✅ LIVE
 **Backend:** https://business-app-backend.up.railway.app  
 
-**Admin Login:** `admin@businessapp.com` / `admin123`
+**Admin:** https://business-app-3r2g.vercel.app/admin
 
 ## ✨ Features
 - ✅ Landing Page + Contact Form (SQLite storage)
