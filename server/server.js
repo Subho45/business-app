@@ -1,78 +1,40 @@
 const express = require('express');
 const cors = require('cors');
-
-// ✅ NEW: Vercel Postgres (instead of SQLite)
-const { sql } = require('@vercel/postgres');
-
-// Load .env for Vercel
+const { initDB } = require('./db');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
-const contactsRoutes = require('./routes/contacts');
+const contactRoutes = require('./routes/contacts');
 
 const app = express();
 
-// Vercel CORS
+// Middleware
 app.use(cors({
-  origin: process.env.VERCEL_URL ? 
-    `https://${process.env.VERCEL_URL}` : 
-    'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
-
 app.use(express.json());
 
-// ✅ NEW: Postgres initDB (async)
-async function initDB() {
-  try {
-    // Create users table
-    await sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        name TEXT,
-        role TEXT DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `;
-    
-    // Create contacts table
-    await sql`
-      CREATE TABLE IF NOT EXISTS contacts (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
-        name TEXT NOT NULL,
-        email TEXT,
-        phone TEXT,
-        company TEXT,
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `;
-    
-    console.log('✅ Postgres database initialized');
-  } catch (error) {
-    console.error('❌ Database init error:', error.message);
-  }
-}
-
-// Initialize database
-initDB().catch(console.error);
+// Initialize SQLite database
+initDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/contacts', contactsRoutes);
+app.use('/api/contacts', contactRoutes);
 
-// Health check
-app.get('/api/health', async (req, res) => {
-  try {
-    const result = await sql`SELECT 1`;
-    res.json({ status: 'OK', db: 'Postgres', timestamp: new Date().toISOString() });
-  } catch (error) {
-    res.status(500).json({ status: 'Error', error: error.message });
-  }
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Backend is running' });
 });
 
-// ✅ Vercel serverless export
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log('📊 Database: SQLite (businessapp.db)');
+    console.log('👤 Default Admin: admin@businessapp.com / admin123');
+  });
+}
+
 module.exports = app;

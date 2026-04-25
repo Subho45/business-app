@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const { auth, adminAuth } = require('../middleware/auth');
-const { sql } = require('@vercel/postgres'); // ✅ Postgres queries
+const { pool } = require('../db');
 
 const router = express.Router();
 
@@ -16,15 +16,14 @@ router.post('/', [
   try {
     const { name, email, phone, company, notes, user_id } = req.body;
     
-    const { rows } = await sql`
-      INSERT INTO contacts (user_id, name, email, phone, company, notes)
-      VALUES (${user_id || null}, ${name}, ${email}, ${phone || null}, ${company || null}, ${notes || null})
-      RETURNING *
-    `;
+    const result = await pool.query(
+      "INSERT INTO contacts (name, email, message) VALUES ($1, $2, $3) RETURNING *",
+      [name, email, notes || '']
+    );
     
     res.status(201).json({ 
       msg: 'Contact created successfully!',
-      contact: rows[0]
+      contact: result.rows[0]
     });
   } catch (error) {
     console.error('Create contact error:', error);
@@ -35,14 +34,11 @@ router.post('/', [
 // ✅ GET /api/contacts - Get all contacts (Admin only)
 router.get('/', auth, adminAuth, async (req, res) => {
   try {
-    const { rows } = await sql`
-      SELECT c.*, u.name as user_name, u.email as user_email
-      FROM contacts c
-      LEFT JOIN users u ON c.user_id = u.id
-      ORDER BY c.created_at DESC
-    `;
+    const result = await pool.query(
+      "SELECT * FROM contacts ORDER BY submitted_at DESC"
+    );
     
-    res.json({ contacts: rows });
+    res.json({ contacts: result.rows });
   } catch (error) {
     console.error('Get contacts error:', error);
     res.status(500).json({ msg: 'Server error' });
@@ -53,18 +49,16 @@ router.get('/', auth, adminAuth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { rows } = await sql`
-      SELECT c.*, u.name as user_name
-      FROM contacts c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.id = ${id}
-    `;
+    const result = await pool.query(
+      "SELECT * FROM contacts WHERE id = $1",
+      [id]
+    );
     
-    if (!rows[0]) {
+    if (!result.rows[0]) {
       return res.status(404).json({ msg: 'Contact not found' });
     }
     
-    res.json(rows[0]);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Get contact error:', error);
     res.status(500).json({ msg: 'Server error' });
@@ -76,13 +70,12 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const { rows } = await sql`
-      DELETE FROM contacts 
-      WHERE id = ${id} 
-      RETURNING *
-    `;
+    const result = await pool.query(
+      "DELETE FROM contacts WHERE id = $1 RETURNING *",
+      [id]
+    );
     
-    if (!rows[0]) {
+    if (!result.rows[0]) {
       return res.status(404).json({ msg: 'Contact not found' });
     }
     
