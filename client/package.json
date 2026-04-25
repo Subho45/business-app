@@ -1,7 +1,7 @@
 {
   "name": "business-app-client",
   "version": "0.1.0",
-  "homepage": ".",
+  "homepage": "business-app-sf36-hhyv5pbpd-subho45s-projects.vercel.app",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
