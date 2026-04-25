@@ -5,7 +5,7 @@
 [![Node.js](https://img.shields.io/badge/Node-20-green.svg)](https://nodejs.org)
 
 ## 🌐 Live Demo
-**Frontend:** https://business-app-frontend.vercel.app  
+**Frontend:** Frontend: https://business-app-sf36.vercel.app ✅  
 **Backend:** https://business-app-backend.up.railway.app  
 
 **Admin Login:** `admin@businessapp.com` / `admin123`
