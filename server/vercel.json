@@ -1,8 +1,0 @@
-// vercel.json (ONLY if needed)
-{
-  "functions": {
-    "server.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
-}
